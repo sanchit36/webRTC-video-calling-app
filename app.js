@@ -20,11 +20,45 @@ io.on("connection", (socket) => {
   connectedPeers.push(socket.id);
   console.log("Users: ", connectedPeers);
 
+  socket.on("pre-offer", (data) => {
+    const { calleePersonalCode, callType } = data;
+
+    const connectedPeer = connectedPeers.find(
+      (peerSocketId) => peerSocketId === calleePersonalCode
+    );
+
+    if (connectedPeer) {
+      const data = {
+        callerSocketId: socket.id,
+        callType,
+      };
+
+      io.to(calleePersonalCode).emit("pre-offer", data);
+    } else {
+      data = {
+        preOfferAnswer: "CALLEE_NOT_FOUND",
+      };
+      io.to(socket.id).emit("pre-offer-answer", data);
+    }
+  });
+
+  socket.on("pre-offer-answer", (data) => {
+    const { callerSocketId } = data;
+
+    const connectedPeer = connectedPeers.find(
+      (peerSocketId) => peerSocketId === callerSocketId
+    );
+
+    if (connectedPeer) {
+      io.to(callerSocketId).emit("pre-offer-answer", data);
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected");
 
     connectedPeers.splice(
-      connectedPeers.find((p) => p.id === socket.id),
+      connectedPeers.find((peerSocketId) => peerSocketId === socket.id),
       1
     );
 
