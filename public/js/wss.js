@@ -8,8 +8,6 @@ export const registerSocketEvents = (socket) => {
   socketIO = socket;
 
   socket.on("connect", () => {
-    console.log("successfully connected to wss server");
-    store.setSocketId(socket.id);
     ui.updatePersonalCode(socket.id);
   });
 

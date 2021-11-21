@@ -16,6 +16,9 @@ personalCodeCopyButton.addEventListener("click", () => {
   navigator.clipboard && navigator.clipboard.writeText(personalCode);
 });
 
+// GETTING LOCAL PREVIEW
+webRTCHandler.getLocalPreview();
+
 // REGISTER Event Listeners FOR CONNECTION BUTTONS
 const personalCodeChatButton = document.getElementById(
   "personal_code_chat_button"
