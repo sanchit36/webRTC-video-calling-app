@@ -18,6 +18,11 @@ export const updateLocalStream = (stream) => {
   });
 };
 
+export const updateRemoteStream = (stream) => {
+  const remoteVideo = document.getElementById("remote_video");
+  remoteVideo.srcObject = stream;
+};
+
 export const showIncomingCallDialog = (
   callType,
   acceptCallHandler,
@@ -42,7 +47,7 @@ export const showIncomingCallDialog = (
 export const showCallingDialog = (rejectCallHandler) => {
   const callingDialog = elements.getCallingDialog(rejectCallHandler);
 
-  // removing all dialogs iniside HTML dialog element
+  // removing all dialogs inside HTML dialog element
   const dialog = document.getElementById("dialog");
   dialog.querySelectorAll("*").forEach((dialog) => dialog.remove());
 

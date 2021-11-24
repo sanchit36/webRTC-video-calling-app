@@ -14,7 +14,7 @@ const defaultConstraints = {
 const configuration = {
   iceServers: [
     {
-      urls: "stun:stun.1.google.com:13902",
+      urls: "stun:stun.l.google.com:19302",
     },
   ],
 };
@@ -38,7 +38,11 @@ const createPeerConnection = () => {
   peerConnection.onicecandidate = (event) => {
     console.log("getting ice candidates from stun server");
     if (event.candidate) {
-      // send our ice candidates to other peer
+      wss.sendDataUsingWebRTCSignaling({
+        connectedUserSocketId: connectedUserDetails.socketId,
+        type: constants.webRTCSignaling.ICE_CANDIDATE,
+        candidate: event.candidate,
+      });
     }
   };
 
@@ -62,8 +66,7 @@ const createPeerConnection = () => {
     connectedUserDetails.callType === constants.callType.VIDEO_PERSONAL_CODE
   ) {
     const localStream = store.getState().localStream;
-
-    for (const track in localStream.getTracks()) {
+    for (const track of localStream.getTracks()) {
       peerConnection.addTrack(track, localStream);
     }
   }
@@ -106,6 +109,7 @@ export const handlePreOffer = (data) => {
 
 const acceptCallHandler = () => {
   console.log("call accepted");
+  createPeerConnection();
   sendPreOfferAnswer(constants.preOfferAnswer.CALL_ACCEPTED);
   ui.showCallElements(connectedUserDetails.callType);
 };
@@ -130,8 +134,6 @@ const sendPreOfferAnswer = (preOfferAnswer) => {
 
 export const handlePreOfferAnswer = (data) => {
   const { preOfferAnswer } = data;
-  console.log("pre offer came");
-  console.log(data);
   ui.removeAllDialogs();
 
   switch (preOfferAnswer) {
@@ -147,8 +149,49 @@ export const handlePreOfferAnswer = (data) => {
     case constants.preOfferAnswer.CALL_ACCEPTED:
       // send webRTC offer
       ui.showCallElements(connectedUserDetails.callType);
+      createPeerConnection();
+      sendWebRTCOffer();
       break;
     default:
       break;
+  }
+};
+
+const sendWebRTCOffer = async () => {
+  const offer = await peerConnection.createOffer();
+  await peerConnection.setLocalDescription(offer);
+  wss.sendDataUsingWebRTCSignaling({
+    connectedUserSocketId: connectedUserDetails.socketId,
+    type: constants.webRTCSignaling.OFFER,
+    offer: offer,
+  });
+};
+
+export const handleWebRTCOffer = async (data) => {
+  console.log("webRTC offer came");
+  await peerConnection.setRemoteDescription(data.offer);
+  const answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answer);
+  wss.sendDataUsingWebRTCSignaling({
+    connectedUserSocketId: connectedUserDetails.socketId,
+    type: constants.webRTCSignaling.ANSWER,
+    answer: answer,
+  });
+};
+
+export const handleWebRTCAnswer = async (data) => {
+  console.log("webRTC answer came");
+  await peerConnection.setRemoteDescription(data.answer);
+};
+
+export const handleWebRTCCandidate = async (data) => {
+  console.log("webRTC ice Candidate came");
+  try {
+    await peerConnection.addIceCandidate(data.candidate);
+  } catch (err) {
+    console.error(
+      "error occurred when trying to add received ice candidate",
+      err
+    );
   }
 };
