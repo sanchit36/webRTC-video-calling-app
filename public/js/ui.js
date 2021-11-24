@@ -134,6 +134,23 @@ const showVideoElements = () => {
   disableDashboard();
 };
 
+// UI CALL BUTTONS
+const micOnImageSrc = "./utils/images/mic.png";
+const micOffImageSrc = "./utils/images/micOff.png";
+
+export const updateMicButton = (micActive) => {
+  const micButtonImage = document.getElementById("mic_button_image");
+  micButtonImage.src = micActive ? micOffImageSrc : micOnImageSrc;
+};
+
+const cameraOnImageSrc = "./utils/images/camera.png";
+const cameraOffImageSrc = "./utils/images/cameraOff.png";
+
+export const updateCameraButton = (cameraActive) => {
+  const cameraButtonImage = document.getElementById("camera_button_image");
+  cameraButtonImage.src = cameraActive ? cameraOffImageSrc : cameraOnImageSrc;
+};
+
 // UI HELPER FUNCTIONS
 
 const enableDashboard = () => {
