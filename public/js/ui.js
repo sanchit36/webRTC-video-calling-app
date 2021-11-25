@@ -151,6 +151,21 @@ export const updateCameraButton = (cameraActive) => {
   cameraButtonImage.src = cameraActive ? cameraOffImageSrc : cameraOnImageSrc;
 };
 
+// UI MESSAGES
+
+export const appendMessage = (message, right = false) => {
+  const messagesContainer = document.getElementById("messages_container");
+  const messageElement = right
+    ? elements.getRightMessage(message)
+    : elements.getLeftMessage(message);
+  messagesContainer.appendChild(messageElement);
+};
+
+export const clearMessages = () => {
+  const messagesContainer = document.getElementById("messages_container");
+  messagesContainer.querySelectorAll("*").forEach((n) => n.remove());
+};
+
 // UI HELPER FUNCTIONS
 
 const enableDashboard = () => {

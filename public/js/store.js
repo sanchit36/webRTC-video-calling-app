@@ -9,7 +9,6 @@ let state = {
 
 export const setSocketId = (socketId) => {
   state = { ...state, socketId };
-  console.log(state);
 };
 
 export const setLocalStream = (localStream) => {

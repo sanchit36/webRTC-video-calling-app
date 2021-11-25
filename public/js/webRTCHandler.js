@@ -5,6 +5,7 @@ import * as store from "./store.js";
 
 let connectedUserDetails;
 let peerConnection;
+let dataChannel;
 
 const defaultConstraints = {
   audio: true,
@@ -33,11 +34,31 @@ export const getLocalPreview = () => {
 };
 
 const createPeerConnection = () => {
+  // Creating a peer connection
   peerConnection = new RTCPeerConnection(configuration);
 
+  // Creating a data channel
+  dataChannel = peerConnection.createDataChannel("chat");
+
+  // message event listener
+
+  peerConnection.ondatachannel = (event) => {
+    const dataChannel = event.channel;
+
+    dataChannel.onopen = () => {
+      console.log("peer connection is ready to receive data channel message");
+    };
+
+    dataChannel.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      ui.appendMessage(message, false);
+    };
+  };
+
+  // Listening to ice candidate event
   peerConnection.onicecandidate = (event) => {
-    console.log("getting ice candidates from stun server");
     if (event.candidate) {
+      // Sending the ice candidate to other peer connection
       wss.sendDataUsingWebRTCSignaling({
         connectedUserSocketId: connectedUserDetails.socketId,
         type: constants.webRTCSignaling.ICE_CANDIDATE,
@@ -46,6 +67,7 @@ const createPeerConnection = () => {
     }
   };
 
+  // Listening to connection State
   peerConnection.onconnectionstatechange = (event) => {
     if (peerConnection.connectionState === "connected") {
       console.log("successfully connected with other peer");
@@ -57,11 +79,15 @@ const createPeerConnection = () => {
   store.setRemoteStream(remoteStream);
   ui.updateRemoteStream(remoteStream);
 
+  // peerConnection will give the tracks
+  // of other peer connection
+  // we adding it to the remote stream
   peerConnection.ontrack = (event) => {
     remoteStream.addTrack(event.track);
   };
 
   // add our stream to peer connection
+  // for the other peer connection
   if (
     connectedUserDetails.callType === constants.callType.VIDEO_PERSONAL_CODE
   ) {
@@ -70,6 +96,13 @@ const createPeerConnection = () => {
       peerConnection.addTrack(track, localStream);
     }
   }
+};
+
+export const sendMessageUsingDataChannel = (message) => {
+  // because cant send json
+  const stringifiedMessage = JSON.stringify(message);
+  // send function triggers the onmessage event
+  dataChannel.send(stringifiedMessage);
 };
 
 export const sendPreOffer = (callType, calleePersonalCode) => {
@@ -108,7 +141,6 @@ export const handlePreOffer = (data) => {
 };
 
 const acceptCallHandler = () => {
-  console.log("call accepted");
   createPeerConnection();
   sendPreOfferAnswer(constants.preOfferAnswer.CALL_ACCEPTED);
   ui.showCallElements(connectedUserDetails.callType);
@@ -147,7 +179,6 @@ export const handlePreOfferAnswer = (data) => {
       ui.showInfoDialog(preOfferAnswer);
       break;
     case constants.preOfferAnswer.CALL_ACCEPTED:
-      // send webRTC offer
       ui.showCallElements(connectedUserDetails.callType);
       createPeerConnection();
       sendWebRTCOffer();
@@ -158,8 +189,12 @@ export const handlePreOfferAnswer = (data) => {
 };
 
 const sendWebRTCOffer = async () => {
+  // Caller Side
+  // creating a webRTC offer using peerConnection
   const offer = await peerConnection.createOffer();
+  // Saving my offer in my local Description
   await peerConnection.setLocalDescription(offer);
+  // Sending offer to the signaling server
   wss.sendDataUsingWebRTCSignaling({
     connectedUserSocketId: connectedUserDetails.socketId,
     type: constants.webRTCSignaling.OFFER,
@@ -168,10 +203,14 @@ const sendWebRTCOffer = async () => {
 };
 
 export const handleWebRTCOffer = async (data) => {
-  console.log("webRTC offer came");
+  // Callee Side
+  // Saving the remote peer information in remote Description
   await peerConnection.setRemoteDescription(data.offer);
+  // Creating a webRTC Answer to send
   const answer = await peerConnection.createAnswer();
+  // Saving the Information to local Description
   await peerConnection.setLocalDescription(answer);
+  // Sending answer to the signaling server
   wss.sendDataUsingWebRTCSignaling({
     connectedUserSocketId: connectedUserDetails.socketId,
     type: constants.webRTCSignaling.ANSWER,
@@ -180,12 +219,14 @@ export const handleWebRTCOffer = async (data) => {
 };
 
 export const handleWebRTCAnswer = async (data) => {
-  console.log("webRTC answer came");
+  // Caller Side
+  // Saving the remote peer information in remote Description
   await peerConnection.setRemoteDescription(data.answer);
 };
 
 export const handleWebRTCCandidate = async (data) => {
-  console.log("webRTC ice Candidate came");
+  // adding the ice candidate to other peer to
+  // our peer connection
   try {
     await peerConnection.addIceCandidate(data.candidate);
   } catch (err) {
@@ -222,8 +263,6 @@ export const switchBetweenCameraAndScreenSharing = async (
     store.setScreenSharingActive(!screenSharingActive);
     ui.updateLocalStream(localStream);
   } else {
-    console.log("switching for screen sharing");
-
     try {
       screenSharingStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
