@@ -10,7 +10,7 @@ const io = socket(server);
 
 app.use(express.static("public"));
 
-app.get("/", (req, res) => {
+app.get("/", (_, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
@@ -18,7 +18,6 @@ let connectedPeers = [];
 
 io.on("connection", (socket) => {
   connectedPeers.push(socket.id);
-  console.log("Users: ", connectedPeers);
 
   socket.on("pre-offer", (data) => {
     const { calleePersonalCode, callType } = data;
@@ -66,15 +65,23 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
+  socket.on("user-hanged-up", (data) => {
+    const { connectedUserSocketId } = data;
 
+    const connectedPeer = connectedPeers.find(
+      (peerSocketId) => peerSocketId === connectedUserSocketId
+    );
+
+    if (connectedPeer) {
+      io.to(connectedUserSocketId).emit("user-hanged-up");
+    }
+  });
+
+  socket.on("disconnect", () => {
     connectedPeers.splice(
       connectedPeers.find((peerSocketId) => peerSocketId === socket.id),
       1
     );
-
-    console.log("Users: ", connectedPeers);
   });
 });
 

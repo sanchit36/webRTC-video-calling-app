@@ -119,9 +119,19 @@ const pauseButton = document.getElementById("pause_recording_button");
 pauseButton.addEventListener("click", () => {
   recordingUtils.pauseRecording();
   ui.switchRecordingButtons(true);
-  console.log("HE");
 });
 resumeButton.addEventListener("click", () => {
   recordingUtils.resumeRecording();
   ui.switchRecordingButtons(false);
+});
+
+// EVENT LISTENERS FOR HANG UP
+const hangUpCallButton = document.getElementById("hang_up_button");
+hangUpCallButton.addEventListener("click", () => {
+  webRTCHandler.handleHangUp();
+});
+
+const hangUpChatButton = document.getElementById("finish_chat_call_button");
+hangUpChatButton.addEventListener("click", () => {
+  webRTCHandler.handleHangUp();
 });

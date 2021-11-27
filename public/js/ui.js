@@ -1,5 +1,6 @@
 import * as constants from "./constants.js";
 import * as elements from "./elements.js";
+import * as store from "./store.js";
 
 export const updatePersonalCode = (personalCode) => {
   const personalCodeParagraph = document.getElementById(
@@ -16,6 +17,15 @@ export const updateLocalStream = (stream) => {
   localVideo.addEventListener("loadedmetadata", () => {
     localVideo.play();
   });
+};
+
+export const showVideoCallButtons = () => {
+  const personalCodeVideoButton = document.getElementById(
+    "personal_code_video_button"
+  );
+  const strangerVideoButton = document.getElementById("stranger_video_button");
+  showElement(personalCodeVideoButton);
+  showElement(strangerVideoButton);
 };
 
 export const updateRemoteStream = (stream) => {
@@ -37,7 +47,7 @@ export const showIncomingCallDialog = (
     rejectCallHandler
   );
 
-  // removing all dialogs iniside HTML dialog element
+  // removing all dialogs inside HTML dialog element
   const dialog = document.getElementById("dialog");
   dialog.querySelectorAll("*").forEach((dialog) => dialog.remove());
 
@@ -198,6 +208,38 @@ export const switchRecordingButtons = (switchForResumeButton) => {
     hideElement(resumeButton);
     showElement(pauseButton);
   }
+};
+
+// UI After hangUp
+export const updateUIAfterHangUp = (callType) => {
+  enableDashboard();
+
+  if (
+    callType === constants.callType.VIDEO_PERSONAL_CODE ||
+    callType === constants.callType.VIDEO_STRANGER
+  ) {
+    const callButtons = document.getElementById("call_buttons");
+    hideElement(callButtons);
+  } else {
+    const chatCallButtons = document.getElementById(
+      "finish_chat_button_container"
+    );
+    hideElement(chatCallButtons);
+  }
+  const newMessageInput = document.getElementById("new_message");
+  hideElement(newMessageInput);
+  clearMessages();
+
+  updateMicButton(false);
+  updateCameraButton(false);
+
+  const placeholder = document.getElementById("video_placeholder");
+  showElement(placeholder);
+
+  const remoteVideo = document.getElementById("remote_video");
+  hideElement(remoteVideo);
+
+  removeAllDialogs();
 };
 
 // UI HELPER FUNCTIONS
