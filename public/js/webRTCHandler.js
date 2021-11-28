@@ -15,7 +15,7 @@ const defaultConstraints = {
 const configuration = {
   iceServers: [
     {
-      urls: "stun:stun.l.google.com:19302",
+      urls: "stun:stun2.l.google.com:19302",
     },
   ],
 };
@@ -59,6 +59,7 @@ const createPeerConnection = () => {
 
   // Listening to ice candidate event
   peerConnection.onicecandidate = (event) => {
+    console.log(event);
     if (event.candidate) {
       // Sending the ice candidate to other peer connection
       wss.sendDataUsingWebRTCSignaling({
@@ -234,7 +235,7 @@ export const handlePreOfferAnswer = (data) => {
 const sendWebRTCOffer = async () => {
   // Caller Side
   // creating a webRTC offer using peerConnection
-  const offer = await peerConnection.createOffer();
+  const offer = await peerConnection.createOffer({ iceRestart: true });
   // Saving my offer in my local Description
   await peerConnection.setLocalDescription(offer);
   // Sending offer to the signaling server
@@ -250,7 +251,7 @@ export const handleWebRTCOffer = async (data) => {
   // Saving the remote peer information in remote Description
   await peerConnection.setRemoteDescription(data.offer);
   // Creating a webRTC Answer to send
-  const answer = await peerConnection.createAnswer();
+  const answer = await peerConnection.createAnswer({ iceRestart: true });
   // Saving the Information to local Description
   await peerConnection.setLocalDescription(answer);
   // Sending answer to the signaling server
