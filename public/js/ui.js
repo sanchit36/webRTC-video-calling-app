@@ -184,15 +184,16 @@ export const updateCameraButton = (cameraActive) => {
 // UI MESSAGES
 
 export const appendMessage = (message, right = false) => {
-  const messagesContainer = document.getElementById("messages_container");
+  const messagesContainer = document.getElementById("messages");
   const messageElement = right
     ? elements.getRightMessage(message)
     : elements.getLeftMessage(message);
   messagesContainer.appendChild(messageElement);
+  scrollIntoVideo(messageElement);
 };
 
 export const clearMessages = () => {
-  const messagesContainer = document.getElementById("messages_container");
+  const messagesContainer = document.getElementById("messages");
   messagesContainer.querySelectorAll("*").forEach((n) => n.remove());
 };
 
@@ -299,4 +300,13 @@ const showElement = (element) => {
   if (element.classList.contains("display_none")) {
     element.classList.remove("display_none");
   }
+};
+
+// SCROLL INTO VIDEO
+export const scrollIntoVideo = (element) => {
+  element.scrollIntoView({
+    behavior: "smooth",
+    block: "end",
+    inline: "nearest",
+  });
 };
