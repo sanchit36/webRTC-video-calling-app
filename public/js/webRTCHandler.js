@@ -31,7 +31,7 @@ export const getLocalPreview = () => {
     })
     .catch((err) => {
       console.error("error occurred when trying to get an access to camera");
-      console.error(err);
+      console.error({ err });
     });
 };
 
@@ -46,6 +46,10 @@ const createPeerConnection = () => {
 
   peerConnection.ondatachannel = (event) => {
     const dataChannel = event.channel;
+
+    dataChannel.onopen = (event) => {
+      console.log("peer connection is ready to receive data channel message");
+    };
 
     dataChannel.onmessage = (event) => {
       const message = JSON.parse(event.data);
