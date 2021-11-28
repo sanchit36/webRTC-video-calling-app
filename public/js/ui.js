@@ -64,6 +64,20 @@ export const showCallingDialog = (rejectCallHandler) => {
   dialog.appendChild(callingDialog);
 };
 
+export const showNoStrangerDialog = () => {
+  const infoDialog = elements.getInfoDialog(
+    "No Stranger available",
+    "Please try again later"
+  );
+
+  if (infoDialog) {
+    const dialog = document.getElementById("dialog");
+    dialog.appendChild(infoDialog);
+
+    setTimeout(removeAllDialogs, 4000);
+  }
+};
+
 export const showInfoDialog = (preOfferAnswer) => {
   let infoDialog = null;
 
@@ -105,11 +119,17 @@ export const removeAllDialogs = () => {
 };
 
 export const showCallElements = (callType) => {
-  if (callType === constants.callType.CHAT_PERSONAL_CODE) {
+  if (
+    callType === constants.callType.CHAT_PERSONAL_CODE ||
+    callType === constants.callType.CHAT_STRANGER
+  ) {
     showChatElements();
   }
 
-  if (callType === constants.callType.VIDEO_PERSONAL_CODE) {
+  if (
+    callType === constants.callType.VIDEO_PERSONAL_CODE ||
+    callType === constants.callType.VIDEO_STRANGER
+  ) {
     showVideoElements();
   }
 };
@@ -240,6 +260,17 @@ export const updateUIAfterHangUp = (callType) => {
   hideElement(remoteVideo);
 
   removeAllDialogs();
+};
+
+// UI FOR STRANGERS
+export const updateStrangerCheckbox = (allowConnections) => {
+  const checkboxCheckImage = document.getElementById(
+    "allow_strangers_checkbox_image"
+  );
+
+  allowConnections
+    ? showElement(checkboxCheckImage)
+    : hideElement(checkboxCheckImage);
 };
 
 // UI HELPER FUNCTIONS

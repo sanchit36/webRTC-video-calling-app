@@ -51,7 +51,7 @@ export const getIncomingCallDialog = (
   return dialog;
 };
 
-export const getCallingDialog = (rejectCallButton) => {
+export const getCallingDialog = (rejectCallHandler) => {
   const dialog = document.createElement("div");
   dialog.classList.add("dialog_wrapper");
   const dialogContent = document.createElement("div");
@@ -84,6 +84,7 @@ export const getCallingDialog = (rejectCallButton) => {
   dialogContent.appendChild(title);
   dialogContent.appendChild(imageContainer);
   dialogContent.appendChild(buttonContainer);
+  hangUpCallButton.addEventListener("click", rejectCallHandler);
 
   return dialog;
 };
